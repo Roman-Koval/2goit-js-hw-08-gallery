@@ -66,75 +66,65 @@ const galleryItems = [
 // - Создание и рендер разметки по массиву данных `galleryItems` из `app.js` и
 // предоставленному шаблону.
 const galeryEl = document.querySelector(".gallery");
-const createGalleryElements = galleryItems.map(
-  ({ preview, original, description }) => {
-    return `<li class="gallery__item"><a class="gallery__link" href="${original}">
-          <img class="gallery__image" src="${preview}" data-source="${original}"
-            alt="${description}"/></a></li>`;
+const divLightbox = document.querySelector(".lightbox");
+const divOverlay = document.querySelector(".lightbox__overlay");
+const imgModal = document.querySelector(".lightbox__image");
+const buttonClose = document.querySelector(".lightbox__button");
+galleryItems.map((el, index) => {
+  galeryEl.innerHTML += `<li class="gallery__item">
+  <a class="gallery__link" href="${el.preview}">
+  <img class="gallery__image" src="${el.preview}" data-source="${el.original}"
+   alt="${el.description}" data-index="${index}"/></a></li>`;
+});
+
+galeryEl.addEventListener("click", (e) => {
+  e.preventDefault();
+  let modalLink = e.target.dataset.source;
+  divLightbox.classList.add("is-open");
+  imgModal.src = modalLink;
+  imgModal.dataset.index = e.target.dataset.index
+});
+
+
+buttonClose.addEventListener("click", closeOverlay);
+divOverlay.addEventListener("click", closeOverlay);
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeOverlay()
   }
-);
-galeryEl.insertAdjacentHTML("beforeend", createGalleryElements.join(""));
-// // - Реализация делегирования на галерее `ul.js-gallery` и получение `url` большого
-// // изображения.
-// // - Открытие модального окна по клику на элементе галереи.
-const modalWindow = document.querySelector("div.lightbox");
-const showModal = (event) => {
-  event.preventDefault();
-  if (event.target.nodeName !== "IMG") {
-    return;
+  if (e.key === "ArrowLeft") {
+    arrowLeft()
   }
-  return modalWindow.classList.add("is-open");
-};
-galeryEl.addEventListener("click", showModal);
-// // - Подмена значения атрибута`src` элемента`img.lightbox__image`.
-const originalImage = document.querySelector(".lightbox__image");
-const showModalImage = (event) => {
-  event.preventDefault();
-  if (
-    modalWindow.classList.contains("is-open") &&
-    event.target.nodeName === "IMG"
-  ) {
-    const imgSetSrc = event.target.dataset.source;
-    return (originalImage.src = imgSetSrc);
+  if (e.key === "ArrowRight") {
+    arrowRight()
   }
-};
-galeryEl.addEventListener("click", showModalImage);
-// // - Закрытие модального окна по клику на кнопку
-// //   `button[data-action="close-lightbox"]`.
-// // - Очистка значения атрибута `src` элемента `img.lightbox__image`. Это необходимо
-// //   для того, чтобы при следующем открытии модального окна, пока грузится
-// //   изображение, мы не видели предыдущее.
-const closeBtn = document.querySelector(".lightbox__button");
-const onCloseBtnClick = () => {
-  if (modalWindow.classList.contains("is-open")) {
-    originalImage.src = "";
-    return modalWindow.classList.remove("is-open");
+
+});
+
+function closeOverlay() {
+  divLightbox.classList.remove("is-open");
+  imgModal.src = "";
+}
+
+function setNewSrc(step, index) {
+  imgModal.dataset.index = `${index + step}`
+  imgModal.src = galleryItems[index + step].original
+}
+function arrowLeft() {
+  let index = +imgModal.dataset.index
+  if (index === 0) {
+    setNewSrc(0, galleryItems.length - 1)
+    return
   }
-};
-closeBtn.addEventListener("click", onCloseBtnClick);
-const overlayClickCloseModalEl = document.querySelector(
-  "div.lightbox__overlay"
-);
-overlayClickCloseModalEl.addEventListener("click", onCloseBtnClick);
-
-
-// Закрытие модального окна по нажатию клавиши ESC.
-
-const closeModalEscKeyboard = function (event) {
-  if (event.key === "Escape") {
-    originalImage.src = "";
-    return modalWindow.classList.remove("is-open");
+  console.log(index);
+  setNewSrc(-1, index)
+}
+function arrowRight() {
+  let index = +imgModal.dataset.index
+  if (index === galleryItems.length - 1) {
+    setNewSrc(0, 0)
+    return
   }
-};
-window.addEventListener("keydown", closeModalEscKeyboard);
-
-// Пролистывание изображений галереи в открытом модальном окне клавишами "влево" и "вправо".
-const scrollingGalleryImagesKeyboard = function (event) {
-  if (event.key === "ArrowRight") {
-    
-    
-  }
-};
-
-
-
+  console.log(index);
+  setNewSrc(1, index)
+}
