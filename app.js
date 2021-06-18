@@ -63,35 +63,75 @@ const galleryItems = [
       description: 'Lighthouse Coast Sea',
     },
   ];
-// - Создание и рендер разметки по массиву данных `galleryItems` из `app.js` и
-// предоставленному шаблону.
-const galeryEl = document.querySelector(".gallery");
-const divLightbox = document.querySelector(".lightbox");
-const divOverlay = document.querySelector(".lightbox__overlay");
-const imgModal = document.querySelector(".lightbox__image");
-const buttonClose = document.querySelector(".lightbox__button");
-galleryItems.map((el, index) => {
-  galeryEl.innerHTML += `<li class="gallery__item">
-  <a class="gallery__link" href="${el.preview}">
-  <img class="gallery__image" src="${el.preview}" data-source="${el.original}"
-   alt="${el.description}" data-index="${index}"/></a></li>`;
-});
 
-galeryEl.addEventListener("click", (e) => {
-  e.preventDefault();
-  let modalLink = e.target.dataset.source;
-  divLightbox.classList.add("is-open");
-  imgModal.src = modalLink;
-  imgModal.dataset.index = e.target.dataset.index
-});
-
-
-buttonClose.addEventListener("click", closeOverlay);
-divOverlay.addEventListener("click", closeOverlay);
-window.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    closeOverlay()
+const refs = {
+    imgModal: document.querySelector('.lightbox__image'),
+    buttonClose: document.querySelector('.lightbox__button'),
+    divLightbox: document.querySelector('.js-lightbox'),
+    galeryEl: document.querySelector('.js-gallery'),
+    divOverlay: document.querySelector('.lightbox__overlay')
   }
+  
+  
+  refs.galeryEl.insertAdjacentHTML('beforeend', createGalleryItems(galleryItems));
+  
+  function createGalleryItems() {
+      const galleryMarkup = galleryItems.map(({ original, preview, description }) => {
+          return `<li class="gallery__item">
+              <a class="gallery__link" href="${original}">
+                  <img class="gallery__image" src="${preview}" data-source="${original}" 
+                  alt="${description}"/>
+              </a>
+          </li>`
+      }
+      ).join('');
+      return galleryMarkup;
+      
+  }
+  
+  refs.galeryEl.addEventListener('click', onGalleryContainerClick);
+  
+  function onGalleryContainerClick(e) {
+    e.preventDefault();
+    
+    if (!e.target.classList.contains('gallery__image')) {
+      return
+    } 
+    refs.divLightbox.classList.add('is-open');
+    addImageAttribute( e.target.alt, e.target.closest('.gallery__link').href );
+    window.addEventListener('keydown', onEskKeyPress);
+  }
+  
+  function addImageAttribute(alt, src) {
+    refs.imgModal.src = '';
+    if (refs.divLightbox.classList.contains('is-open')) {
+      refs.imgModal.src = src;
+      refs.imgModal.alt = alt;
+    } else {
+      refs.imgModal.src = '';
+    }
+  }
+  
+  refs.buttonClose.addEventListener('click', onCloseElClick);
+  
+  function onCloseElClick() {
+    window.removeEventListener('keydown', onEskKeyPress);
+    if (refs.divLightbox.classList.contains('is-open')){
+      refs.divLightbox.classList.remove('is-open')
+    }
+    
+  }
+  
+  refs.divOverlay.addEventListener('click', onCloseElClick);
+  
+  function onEskKeyPress(e) {
+    if (e.code === 'Escape') { onCloseElClick() 
+    }
+    
+    refs.divOverlay.addEventListener("click", arrowLeft);
+    refs.divOverlay.addEventListener("click", arrowRight);
+    window.addEventListener("keydown", (e) => {
+  
   if (e.key === "ArrowLeft") {
     arrowLeft()
   }
@@ -101,24 +141,21 @@ window.addEventListener("keydown", (e) => {
 
 });
 
-function closeOverlay() {
-  divLightbox.classList.remove("is-open");
-  imgModal.src = "";
-}
-
 function setNewSrc(step, index) {
-  imgModal.dataset.index = `${index + step}`
-  imgModal.src = galleryItems[index + step].original
-}
-function arrowLeft() {
-  let index = +imgModal.dataset.index
-  if (index === 0) {
-    setNewSrc(0, galleryItems.length - 1)
-    return
+    imgModal.dataset.index = `${index + step}`
+    imgModal.src = galleryItems[index + step].original
   }
-  console.log(index);
-  setNewSrc(-1, index)
-}
+  function arrowLeft() {
+    let index = +imgModal.dataset.index
+    if (index === 0) {
+      setNewSrc(0, galleryItems.length - 1)
+      return
+    }
+    console.log(index);
+    setNewSrc(-1, index)
+  }
+
+
 function arrowRight() {
   let index = +imgModal.dataset.index
   if (index === galleryItems.length - 1) {
@@ -128,3 +165,19 @@ function arrowRight() {
   console.log(index);
   setNewSrc(1, index)
 }
+
+
+
+
+    
+
+
+
+
+
+
+
+    
+  }
+
+  
